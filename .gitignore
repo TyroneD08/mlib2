@@ -1,4 +1,4 @@
-### Node an Vendor files
+### Node and Vendor files
 node_modules/
 vendor/
 
@@ -34,3 +34,14 @@ $RECYCLE.BIN/
 ### Application
 .env
 _sources
+
+### Docker
+docker/*.log
+docker-compose.override.yml
+
+### PHP
+*.log
+*.cache
+
+### Public uploads (optioneel)
+public/uploads/
