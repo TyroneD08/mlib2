@@ -1,58 +1,97 @@
 <?php
 include __DIR__ . '/views/header.php';
+require_once('../source/database.php');
+
+$single_id = isset($_GET['singleid']) ? (int)$_GET['singleid'] : 1;
+
+$query = "
+SELECT
+    tracks.id,
+    tracks.titel AS title,
+    tracks.duur,
+    tracks.afbeelding AS image,
+    albums.titel AS album,
+    albums.jaar,
+    albums.genre AS genre,
+    artiesten.naam AS artist
+FROM tracks
+LEFT JOIN albums ON tracks.album_id = albums.id
+LEFT JOIN artiesten ON albums.artiest_id = artiesten.id
+WHERE tracks.id = ?
+";
+
+$stmt = $connection->prepare($query);
+if (! $stmt) {
+    die('Prepare failed: ' . $connection->error);
+}
+$stmt->bind_param('i', $single_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$single = $result->fetch_assoc();
+
+$stmt->close();
+
+if (! $single) {
+    http_response_code(404);
+    ?>
+    <!doctype html>
+    <html lang="nl">
+    <head>
+      <meta charset="utf-8">
+      <title>Single niet gevonden</title>
+      <style>body{font-family:Arial, sans-serif;padding:20px;}</style>
+    </head>
+    <body>
+      <h1>404 — Single niet gevonden</h1>
+      <p>Er is geen single met ID <?= htmlspecialchars($single_id) ?>.</p>
+      <p><a href="index.php">Terug naar overzicht</a></p>
+    </body>
+    </html>
+    <?php
+    exit;
+}
 ?>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Dropdown
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Action</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">Something else here</a></li>
-              </ul>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled">Disabled</a>
-            </li>
-          </ul>
-          <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
-        </div>
-      </div>
-    </nav>
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <title><?php echo htmlspecialchars($single['title']); ?></title>
+  <style>
+    body{font-family:Arial, sans-serif;margin:20px;}
+    .single-wrap{display:flex;gap:20px;align-items:flex-start;}
+    .single-img{width:320px;height:320px;overflow:hidden;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;}
+    .single-img img{width:100%;height:100%;object-fit:cover;}
+    .meta{max-width:640px;}
+    .meta h1{margin:0 0 10px 0;font-size:28px;}
+    .meta ul{list-style:none;padding:0;margin:10px 0;}
+    .meta li{margin-bottom:6px;}
+    .back{display:inline-block;margin-top:12px;padding:8px 12px;border:1px solid #ccc;border-radius:6px;text-decoration:none;color:#333;}
+  </style>
+</head>
+<body>
 
-    <div class="container my-5">
-      <h1>Hello, world!</h1>
-      <div class="col-lg-8 px-0">
-        <p class="fs-5">You've successfully loaded up the Bootstrap starter example. It includes <a href="https://getbootstrap.com/">Bootstrap 5</a> via the <a href="https://www.jsdelivr.com/package/npm/bootstrap">jsDelivr CDN</a> and includes an additional CSS and JS file for your own code.</p>
-        <p>Feel free to download or copy-and-paste any parts of this example.</p>
+<div class="single-wrap">
+  <div class="single-img">
+    <?php if (!empty($single['image'])): ?>
+      <img src="<?php echo htmlspecialchars($single['image']); ?>" alt="<?php echo htmlspecialchars($single['title']); ?>">
+    <?php else: ?>
+      <span>Geen cover</span>
+    <?php endif; ?>
+  </div>
 
-        <hr class="col-1 my-4">
+  <div class="meta">
+    <h1><?php echo htmlspecialchars($single['title']); ?></h1>
+    <ul>
+      <li><strong>Artiest:</strong> <?php echo htmlspecialchars($single['artist'] ?? 'Onbekend'); ?></li>
+      <li><strong>Album:</strong> <?php echo htmlspecialchars($single['album'] ?? '—'); ?></li>
+      <li><strong>Jaar:</strong> <?php echo htmlspecialchars($single['jaar'] ?? '—'); ?></li>
+      <li><strong>Genre:</strong> <?php echo htmlspecialchars($single['genre'] ?? '—'); ?></li>
+      <li><strong>Duur:</strong> <?php echo htmlspecialchars($single['duur'] ?? '—'); ?></li>
+    </ul>
+    <a class="back" href="index.php">Terug naar overzicht</a>
+  </div>
+</div>
 
-        <a href="https://getbootstrap.com" class="btn btn-primary">Read the Bootstrap docs</a>
-        <a href="https://github.com/twbs/examples" class="btn btn-secondary">View on GitHub</a>
-      </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <script src="main.js"></script>
-  </body>
+</body>
 </html>
