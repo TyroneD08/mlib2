@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -10,4 +9,3 @@
     <link href="/dist/css/main.min.css" rel="stylesheet">
     <script src="/dist/js/main.js"></script>
   </head>
-  <body>

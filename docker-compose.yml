@@ -25,6 +25,8 @@ services:
   mariadb:
     image: mariadb:latest
     container_name: prog_m5_mariadb
+    ports:
+      - "3309:88"
     environment:
       MYSQL_DATABASE: '${DB_NAME}'
       MYSQL_USER: '${DB_USERNAME}'
